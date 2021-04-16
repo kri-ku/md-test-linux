@@ -77,7 +77,7 @@ Tajusin, että ennen komennon `$ git reset -- hard` kokeilua kannattanee tarkist
 
 ![git status](/pictures/5.png)
 
-Kuvia ei oltu vielä lisätty Githubiin. Lisäsin ne komennoilla:
+Kaikkia kuvia ei oltu vielä lisätty Githubiin. Lisäsin ne komennoilla:
 
 ```
 $ git add pictures/
@@ -85,6 +85,26 @@ $ git commit -m "add pictures"
 $ git push
 
 ```
+
+Syötin terminaaliin komennon `$ git reset --hard`.
+
+```
+Unstaged changes after reset:
+M	README.md
+ 
+```
+
+Tiedosto pitää ensin olla versionhallinnassa, että sen voi resetoida aikaisempaan tilaan.
+
+```
+$ git add .
+$ git reset --hard
+
+	HEAD is now at f21f113 push before trying to reset
+
+```
+README.md tiedosto on palautunut muutoksia edeltävään tilaan.
+
 ### f) Uusi Salt-moduli 
 
 ----
