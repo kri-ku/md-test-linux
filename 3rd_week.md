@@ -105,10 +105,184 @@ $ git reset --hard
 ```
 README.md tiedosto on palautunut muutoksia edeltävään tilaan.
 
+Pidin tauon noin klo 11. Jatkoin taas klo 16.
+
 ### f) Uusi Salt-moduli 
+
+Päätin ladata palomuurin, ufw:n. Poistin ensin aikaisemman ufw-latauksen 
+koneeltani, ja latasin sen uudeleen.
+
+```
+$ sudo apt-get purge ufw
+$ sudo apt-get -y install ufw
+
+```
+Seuraavaksi tarkoitukseni oli selvittää muuttuneet tiedostot. Ufw:n
+asetukset löytyivät kansion /etc/ufw alta.
+
+```
+$ cd etc/ufw
+$ find -printf "%T+ %p\n"|sort
+```
+![muuttuneet](/pictures/6.png)
+
+Kuvassa viimeiset kuusi riviä on leimattu tälle päivälle. Avasin palomuurille
+ portin 22 ja otin sen käyttöön.
+
+```
+$ sudo ufw allow 22/tcp
+$ sudo ufw enable
+
+```
+Tutkin jälleen muttuneita tiedostoja.
+
+![muuttuneet2](/pictures/7.png)
+
+Näyttäisi siltä, että viimeksi muuttuneet tiedostot ovat ufw.conf, 
+user6.rules, user.rules.
+
+Pidin jälleen tauon noin 17:35.
+Aloitin tekemään Salt-modulia. Klo 19.30.
+
+Tein kansion ufw:asetuksille.
+
+```
+$ cd /srv/salt
+$ mkdir ufw
+$ cd ufw
+$ sudoedit init.sls
+
+```
+```
+ufw:
+ pkg.installed
+
+```
+Lisäsin tilan minioneille komennolla `$ sudo salt '*' state.apply ufw`.
+
+```
+kristiina@fishcake:/srv/salt/ufw$ sudo salt '*' state.apply ufw
+kristiina:
+----------
+          ID: ufw
+    Function: pkg.installed
+      Result: True
+     Comment: The following packages were installed/updated: ufw
+     Started: 19:40:41.274301
+    Duration: 8348.341 ms
+     Changes:   
+              ----------
+              ufw:
+                  ----------
+                  new:
+                      0.36-1
+                  old:
+
+Summary for kristiina
+------------
+Succeeded: 1 (changed=1)
+Failed:    0
+------------
+Total states run:     1
+Total run time:   8.348 s
+
+```
+
+Tilan lisääminen näyttäisi toimivan. Komento `$ sudo ufw status` näyttää kuitenkin toistaiseksi palomuurin olevan
+pois päältä. 
+Tilaan pitää lisätä vielä määritykset ufw:n käynnistämiseksi ja (ainakin) portin 22 avaus liikenteelle.
+
+Helpoin tapa rules-tiedostojen kopioimiseksi minioneille lienee ensin avata portti 22 (`$ sudo ufw allow 22/tcp`)
+ja kopioida muuttuneet .rules-päätteiset tiedostot kansioon /srv/salt/ufw.
+Eli 
+
+```
+$ sudo ufw allow 22/tcp
+	Rules updated
+	Rules updated (v6)
+
+$ sudo cp /etc/ufw/user.rules /srv/salt/ufw/
+$ sudo cp /etc/ufw/user6.rules /srv/salt/ufw/
+$ sudo cp /etc/ufw/ufw.conf /srv/salt/ufw/
+ 
+```
+Kopion myös ufw.conf-tiedoston viimeisellä rivillä. Jatkoin muokkaamalla tilaa `$ sudoedit /srv/salt/ufw/init.sls`.
+
+```
+ufw:
+ pkg.installed
+
+/etc/ufw/user.rules:
+  file.managed:
+    - source: salt://ufw/user.rules        
+
+/etc/ufw/user6.rules:
+  file.managed:
+    - source: salt://ufw/user6.rules
+
+/etc/ufw/ufw.conf:
+  file.managed:
+    - source: salt://ufw/ufw.conf   
+```
+
+Tilan pitäisi nyt kopioida konfigurointitiedostot minioneille.
+Poistin jälleen ufwn `$ sudo apt-get purge ufw`, ja ajoin tilan `$ sudo salt '*' state.apply ufw`.
+Tulos oli erikoinen: tiedostoja ei löydy /srv/salt/ufw-kansiosta!
+
+![ufwtila](/pictures/8.png)
+
+Päädyin googlettelemaan ja löysin kurssin aikasemmin tehneen [Hannu Kankkusen blogipostauksen](https://hannukankkunen.wordpress.com/2018/12/10/palvelinten-hallinta-h7/)
+ samasta aiheesta. Ilokseni huomasin Kankkusen tehtävän olevan melko samankaltainen omaani verrattuna. En kuitenkaan 
+onnistunut löytämään tietoa miksei, tiedostojani löydy. Poistin jällee ufw:n asennuksen, ja muokkasin tilan seuraavanlaiseksi:
+
+```
+ufw:
+   pkg.installed
+
+'ufw allow 22/tcp':
+  cmd.run
+
+/etc/ufw/ufw.conf:
+  file.managed:
+    - source: salt://ufw/ufw.conf
+
+
+```
+
+Ajoin tilan onnistuneesti.
+![ufw toimii](/pictures/9.png)
+
+Koitin vielä muokata tilan seuraavasti:
+
+```
+ufw:
+   pkg.installed
+
+'ufw allow 22/tcp':
+  cmd.run:
+    - creates: /etc/ufw/user.rules, /etc/ufw/user6.rules
+
+/etc/ufw/ufw.conf:
+  file.managed:
+    - source: salt://ufw/ufw.conf
+
+ufw.service:
+  service.running:
+    - watch:
+      - file: /etc/ufw/user.rules
+      - file: /etc/ufw/user6.rules
+      - file: /etc/ufw/ufw.conf
+
+```
+Poistin jälleen ufw:n asennuksen ja ajoin tilan uudelleen. Viimeinen muokkaus ei kuitenkaan mennyt läpi.
+![ufw ei toimi](/pictures/10.png)
+
+Kello oli tässä vaiheessa noin 21:15. Päätin jatkaa tehtäviä myöhemmin.
+
+
 
 ----
 
 Lähteet:
 <http://terokarvinen.com/2016/publish-your-project-with-github/>,
-
+<https://terokarvinen.com/2018/apache-user-homepages-automatically-salt-package-file-service-example/>
