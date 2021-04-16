@@ -59,16 +59,32 @@ myös erilaisia parametrejä, jotka mahdollistavat esimerkiksi tiettyjen tiedost
 
 #### Git blame
 
-Tämä komento oli itselleni uusi tuttavuus, joten googlasin sen. ([git blame](https://www.atlassian.com/git/tutorials/inspecting-a-repository/git-blame#:~:text=The%20git%20blame%20command%20is%20used%20to%20examine%20the%20contents,author%20of%20the%20modifications%20was.&text=git%20blame%20and%20git%20log,history%20of%20a%20file's%20contents.))
+Tämä komento oli itselleni uusi tuttavuus, joten googlasin sen, ([git blame](https://www.atlassian.com/git/tutorials/inspecting-a-repository/git-blame#:~:text=The%20git%20blame%20command%20is%20used%20to%20examine%20the%20contents,author%20of%20the%20modifications%20was.&text=git%20blame%20and%20git%20log,history%20of%20a%20file's%20contents.)).
 Komento voidaan kohdistaa johonkin tiettyyn tiedostoon. Lopputuloksena tulostuvat muutokset riveittäin, niiden tekijät ja ajat. Ensimmäisenä tässäkin tulostuu commitin yksilöivä
 koodi, ja tieto siitä, onko muutos paikallinen vai tehty yhteiseen repositorioon.
 
 ![git blame](/pictures/3.png)
 
-```
-```
-
 ### e) Tyhmä muutos gittiin
+
+Muokkasin tiedostoa README.md, `$ nano README.md`.
+
+![README muokkaus](/pictures/4.png)
+
+Tajusin, että ennen komennon `$ git reset -- hard` kokeilua kannattanee tarkistaa onko kaikki tärkeä tieto jo laitettu versionhallintaan.
+
+`$ git status`
+
+![git status](/pictures/5.png)
+
+Kuvia ei oltu vielä lisätty Githubiin. Lisäsin ne komennoilla:
+
+```
+$ git add pictures/
+$ git commit -m "add pictures"
+$ git push
+
+```
 ### f) Uusi Salt-moduli 
 
 ----
