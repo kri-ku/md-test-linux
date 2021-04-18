@@ -134,7 +134,7 @@ $ sudo ufw allow 22/tcp
 $ sudo ufw enable
 
 ```
-Tutkin jälleen muttuneita tiedostoja.
+Tutkin jälleen muuttuneita tiedostoja.
 
 ![muuttuneet2](/pictures/7.png)
 
@@ -279,10 +279,60 @@ Poistin jälleen ufw:n asennuksen ja ajoin tilan uudelleen. Viimeinen muokkaus e
 
 Kello oli tässä vaiheessa noin 21:15. Päätin jatkaa tehtäviä myöhemmin.
 
+Sunnuntaina 18.4.2021 klo 16:45
+
+Tein tämän kohdan aikaisemmin, ja raportoin sen tähän muistinvaraisesti.
+
+Tajusin (ystäväni avustuksella) tutkia kansioiden oikeuksia. Kansiolla user.rules ja user6.rules, ei ollut
+tarvittavia oikeuksia ohjelman suorittamiseen. Korjasin tämän komennolla `$ sudo chmod 777 *.rules
+`, joka antoi laajat oikeudet kaikille. Oikeudet ovat ehkä liian laajat, mutta toimivat tähän tarkoitukseen. 
+
+Ajettuani tilan komennolla `$ sudo salt '*' state.apply ufw`, vastauksena tuli onnistuminen kaikille tilan kohdille.
+Tutkin vielä ufw:n tilaa komennolla `sudo ufw status verbose`, jolloin huomasin ufw:n olevan vielä pois päältä.
+Tiedoston /srv/salt/ufw/init.sls lopputulos näyttää seuraavalta: 
+
+```
+ufw:
+   pkg.installed
+
+/etc/ufw/ufw.conf:
+  file.managed:
+    - source: salt://ufw/ufw.conf
+
+/etc/ufw/user.rules:
+  file.managed:
+    - source: salt://ufw/user.rules
+    - target: ../user.rules
+
+/etc/ufw/user6.rules:
+  file.managed:
+    - source: salt://ufw/user6.rules
+    - target: ../user6.rules
+
+'ufw enable':
+  cmd.run
+
+ufw.service:
+  service.running:
+    - watch:
+      - file: /etc/ufw/user.rules
+      - file: /etc/ufw/user6.rules
+      - file: /etc/ufw/ufw.conf
+
+```
+Pitäisköhän kohtaan "ufw enable" lisätä rivi, jotta ajettaminen tehtäisiin vain, jos ohjelma ei ole jo päällä?
+
+Poistin jälleen ufw:n asennuksen ja ajoin tilan uudelleen.
+![ufw lopputulos](/pictures/11.png)
+![ufw lopputulos](/pictures/12.png)
+![ufw lopputulos](/pictures/13.png)
 
 
 ----
 
 Lähteet:
 <http://terokarvinen.com/2016/publish-your-project-with-github/>,
+
 <https://terokarvinen.com/2018/apache-user-homepages-automatically-salt-package-file-service-example/>
+
+Lauri Koskinen
