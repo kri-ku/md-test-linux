@@ -323,9 +323,9 @@ ufw.service:
 Pitäisköhän kohtaan "ufw enable" lisätä rivi, jotta ajettaminen tehtäisiin vain, jos ohjelma ei ole jo päällä?
 
 Poistin jälleen ufw:n asennuksen ja ajoin tilan uudelleen.
+![ufw lopputulos](/pictures/10.png)
 ![ufw lopputulos](/pictures/11.png)
 ![ufw lopputulos](/pictures/12.png)
-![ufw lopputulos](/pictures/13.png)
 
 
 ----
