@@ -275,7 +275,6 @@ ufw.service:
 
 ```
 Poistin jälleen ufw:n asennuksen ja ajoin tilan uudelleen. Viimeinen muokkaus ei kuitenkaan mennyt läpi.
-![ufw ei toimi](/pictures/10.png)
 
 Kello oli tässä vaiheessa noin 21:15. Päätin jatkaa tehtäviä myöhemmin.
 
@@ -326,8 +325,42 @@ Poistin jälleen ufw:n asennuksen ja ajoin tilan uudelleen.
 ![ufw lopputulos](/pictures/10.png)
 ![ufw lopputulos](/pictures/11.png)
 ![ufw lopputulos](/pictures/12.png)
+-----------
 
+EDIT 21.4 ke tuntien jälkeen
+Kohtaan cmd.run pitää lisätä, komento, jotta tilasta tulisi idempotentti.
+Muokkasin tiedostoa init.sls vielä kerran seuraavaksi:
 
+```
+ufw:
+   pkg.installed
+
+/etc/ufw/ufw.conf:
+  file.managed:
+    - source: salt://ufw/ufw.conf
+
+/etc/ufw/user.rules:
+  file.managed:
+    - source: salt://ufw/user.rules
+
+/etc/ufw/user6.rules:
+  file.managed:
+    - source: salt://ufw/user6.rules
+
+'ufw enable':
+  cmd.run:
+    - unless: 'ufw status | grep active'
+
+ufw.service:
+  service.running:
+    - watch:
+      - file: /etc/ufw/user.rules
+      - file: /etc/ufw/user6.rules
+      - file: /etc/ufw/ufw.conf
+
+```
+Tilan ajaminen onnistuu. En ole aivan varma cmd.run-kohdan lisäyksestä. Tarkoituksena olisi siis, että
+ufw enable -komento ajetaan, jos palvelu ei ole vielä päällä.
 ----
 
 Lähteet:
